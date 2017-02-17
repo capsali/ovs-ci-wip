@@ -1,3 +1,7 @@
+relations:
+  - ["devstack-${UUID}", "hyperv-${UUID}"]
+  - ["active-directory", "hyperv-${UUID}"]
+
 services:
     active-directory:
       charm: cs:~cloudbaseit/active-directory-5

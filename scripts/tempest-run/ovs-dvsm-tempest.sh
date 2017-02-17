@@ -38,7 +38,7 @@ BUNDLE_LOCATION=$(mktemp)
 #cherry_picks="https://review.openstack.org/openstack/neutron|refs/changes/41/417141/2|master"
 
 eval "cat <<EOF
-$(</home/ubuntu/ovs-vi-wip/templates/ovs/bundle.template)
+$(<${WORKSPACE}/ovs-ci-wip/templates/ovs/bundle.template)
 EOF
 " >> $BUNDLE_LOCATION
 

@@ -33,6 +33,7 @@ $(<${WORKSPACE}/ovs-ci-wip/templates/ovs/bundle.template)
 EOF
 " >> $BUNDLE_LOCATION
 
+echo "$BUNDLE_LOCATION"
 
 $DEPLOYER_PATH/deployer.py  --clouds-and-credentials $DEPLOYER_PATH/ci-cl-creds.yaml deploy --template $BUNDLE_LOCATION --max-unit-retries 5 --timeout 7200 --search-string $UUID
 build_exit_code=$?

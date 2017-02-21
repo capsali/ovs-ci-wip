@@ -26,34 +26,24 @@ set +e
 
 DEPLOYER_PATH="/home/ubuntu/deployer"
 BUNDLE_LOCATION=$(mktemp)
-#UUID=${commitid}
 
-# Render Template
-#UUID=${commitid}
-#data_port="00:0C:29:EC:1B:2B 00:0C:29:56:2E:C5 00:50:56:3E:62:B8"
-#external_port="00:0C:29:EC:1B:35"
-#zuul_branch="master"
-#prep_project="False"
-#os_data_network="10.10.0.0/24"
-#cherry_picks="https://review.openstack.org/openstack/neutron|refs/changes/41/417141/2|master"
 
 eval "cat <<EOF
 $(<${WORKSPACE}/ovs-ci-wip/templates/ovs/bundle.template)
 EOF
 " >> $BUNDLE_LOCATION
 
-#project="ovs"
 
 $DEPLOYER_PATH/deployer.py  --clouds-and-credentials $DEPLOYER_PATH/ci-cl-creds.yaml deploy --template $BUNDLE_LOCATION --search-string $UUID
 build_exit_code=$?
 
-source $DEPLOYER_PATH/nodes
+source $WORKSPACE/nodes
     
-exec_with_retry 5 2 ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i /var/lib/jenkins/.local/share/juju/ssh/juju_id_rsa ubuntu@$DEVSTACK \
+exec_with_retry 5 2 ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i /home/ubuntu/.local/share/juju/ssh/juju_id_rsa ubuntu@$DEVSTACK \
     "git clone https://github.com/capsali/common-ci-wip.git /home/ubuntu/common-ci"
 clone_exit_code=$?
 
-exec_with_retry 5 2 ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i /var/lib/jenkins/.local/share/juju/ssh/juju_id_rsa ubuntu@$DEVSTACK \
+exec_with_retry 5 2 ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i /home/ubuntu/.local/share/juju/ssh/juju_id_rsa ubuntu@$DEVSTACK \
     "git -C /home/ubuntu/common-ci checkout no-zuul"
 checkout_exit_code=$?
 
@@ -61,15 +51,15 @@ checkout_exit_code=$?
 if [[ $build_exit_code -eq 0 ]]; then
 	#run tempest
 	
-    exec_with_retry 5 2 ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i /var/lib/jenkins/.local/share/juju/ssh/juju_id_rsa ubuntu@$DEVSTACK \
+    exec_with_retry 5 2 ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i /home/ubuntu/.local/share/juju/ssh/juju_id_rsa ubuntu@$DEVSTACK \
         "mkdir -p /home/ubuntu/tempest"
-	ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i /var/lib/jenkins/.local/share/juju/ssh/juju_id_rsa ubuntu@$DEVSTACK \
+	ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i /home/ubuntu/.local/share/juju/ssh/juju_id_rsa ubuntu@$DEVSTACK \
        "/home/ubuntu/common-ci/devstack/bin/run-all-tests.sh --include-file /home/ubuntu/common-ci/devstack/tests/$project/included_tests.txt \
        --exclude-file /home/ubuntu/common-ci/devstack/tests/$project/excluded_tests.txt --isolated-file /home/ubuntu/common-ci/devstack/tests/$project/isolated_tests.txt \
        --tests-dir /opt/stack/tempest --parallel-tests 10 --max-attempts 2"
 	tests_exit_code=$?
 	
-    exec_with_retry 5 2 ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i /var/lib/jenkins/.local/share/juju/ssh/juju_id_rsa ubuntu@$DEVSTACK \
+    exec_with_retry 5 2 ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i /home/ubuntu/.local/share/juju/ssh/juju_id_rsa ubuntu@$DEVSTACK \
         "/home/ubuntu/devstack/unstack.sh"
 fi 
 
@@ -78,19 +68,16 @@ fi
 LOG_DIR="logs/$commitID"
 mkdir -p "$LOG_DIR"
 
-ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i /var/lib/jenkins/.local/share/juju/ssh/juju_id_rsa ubuntu@$DEVSTACK \
+ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i /home/ubuntu/.local/share/juju/ssh/juju_id_rsa ubuntu@$DEVSTACK \
     "sudo /home/ubuntu/common-ci/infra/logs/collect-logs.sh"
 
-scp -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i /var/lib/jenkins/.local/share/juju/ssh/juju_id_rsa \
+scp -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i /home/ubuntu/.local/share/juju/ssh/juju_id_rsa \
 ubuntu@$DEVSTACK:/home/ubuntu/aggregate.tar.gz $LOG_DIR/aggregate.tar.gz
 
 tar -zxf $LOG_DIR/aggregate.tar.gz -C $LOG_DIR/
 rm $LOG_DIR/aggregate.tar.gz
 
-#export win_user="administrator"
-#export win_password="Passw0rd"
-
-source ~/common-ci/infra/logs/utils.sh
+source $WORKSPACE/common-ci-wip/infra/logs/utils.sh
 
 for hv in $(echo $HYPERV | tr "," "\n"); do
     HV_LOGS=$LOG_DIR/hyperv-logs/$hv

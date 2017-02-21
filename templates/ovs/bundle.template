@@ -3,19 +3,8 @@ relations:
   - ["active-directory", "hyperv-${UUID}"]
 
 services:
-    active-directory:
-      charm: cs:~cloudbaseit/active-directory-5
-      num_units: 1
-      series: win2012r2
-      constraints: "tags=addc"
-      options:
-        administrator-password: "Passw0rd"
-        safe-mode-password: "Passw0rd"
-        domain-name: openvswitch.local
-        domain-user: "openvswitch"
-        domain-user-password: "Passw0rd"
     devstack-${UUID}:
-      charm: /home/ubuntu/ubuntu/devstack
+      charm: /home/ubuntu/charms/ubuntu/devstack
       num_units: 1
       constraints: "tags=devstack"
       series: trusty
@@ -27,8 +16,8 @@ services:
         extra-packages: build-essential libpython-all-dev python-all python-dev python3-all
           python3.4-dev g++ g++-4.8 pkg-config libvirt-dev smbclient libxml2-dev libxslt1-dev zlib1g-dev
         extra-python-packages: "git+https://github.com/andreibacos/pywinrm.git lxml==3.6.4"
-        heat-image-url: http://10.21.7.214/Fedora-x86_64-20-20140618-sda.vhdx
-        test-image-url: http://10.20.1.14:8080/ubuntu_final.vhdx
+        heat-image-url: ${heat_image_url}
+        test-image-url: ${test_image_url}
         ml2-mechanism: openvswitch
         tenant-network-type: vxlan
         enable-tunneling: True
@@ -50,13 +39,13 @@ services:
         prep-project: ${prep_project}
         pip-version: "pip==8.1.1"
     hyperv-${UUID}:
-      charm: /home/ubuntu/windows/hyper-v-ci
+      charm: /home/ubuntu/charms/windows/hyper-v-ci
       num_units: 2
       series: win2012r2
       constraints: "tags=hv2016"
       options:
         administrator-password: ${win_password}
-        vmswitch-management: false
+        vmswitch-management: ${vmswitch_management}
         ovs-installer-url: ${ovs_installer}
         ovs-certificate-url: ${ovs_certificate}
         test-signing: true

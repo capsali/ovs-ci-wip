@@ -18,7 +18,7 @@ services:
       charm: /home/ubuntu/charms/ubuntu/devstack
       num_units: 1
       constraints: "tags=ovs10g"
-      series: trusty
+      series: xenial
       options:
         disabled-services: horizon n-novnc n-net n-cpu ceilometer-acompute s-proxy s-object s-container s-account
         enabled-services: rabbit mysql key n-api n-crt n-obj n-cond n-sch n-cauth

@@ -25,7 +25,7 @@ services:
           neutron q-svc q-agt q-dhcp q-l3 q-meta q-lbaas q-fwaas q-metering q-vpn
           g-api g-reg cinder c-api c-vol c-sch heat h-api h-api-cfn h-api-cw h-eng tempest
         extra-packages: build-essential libpython-all-dev python-all python-dev python3-all
-          python3.4-dev g++ g++-4.8 pkg-config libvirt-dev smbclient libxml2-dev libxslt1-dev zlib1g-dev
+          python3-dev g++ g++-4.8 pkg-config libvirt-dev smbclient libxml2-dev libxslt1-dev zlib1g-dev
         extra-python-packages: "git+https://github.com/petrutlucian94/pywinrm.git lxml==3.6.4"
         heat-image-url: ${heat_image_url}
         test-image-url: ${test_image_url}

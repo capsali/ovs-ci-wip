@@ -44,7 +44,6 @@
               while read line
               do
                   echo "Starting job for commitID $line"
-                  curl -X POST "http://{jenkins_user}:{jenkins_pass}@{jenkins_ip}:8080/job/ovs-build-job/buildWithParameters?token={token}&commitid=$line"
                   echo "Job for commitID $line started"
               done < $WORKSPACE/gitlog.txt
           }
@@ -128,7 +127,42 @@
           description: "CommitID to build from"
     builders:
       - shell: |
-          powershell -command "& ""C:\scripts\ovs-email.ps1"""
+            #!/bin/bash
+            set +e
+            COMMON_CI_WIP="${WORKSPACE}/common-ci-wip"
+            OVS_CI_WIP="${WORKSPACE}/ovs-ci-wip"
+            ovs_dvsm_tempest="$OVS_CI_WIP/scripts/tempest-run/ovs-dvsm-tempest.sh"
+            # Render Template
+            export project="ovs"
+            export UUID=${commitid}
+            export data_port="e4:1d:2d:22:a0:30 e4:1d:2d:22:a6:30 e4:1d:2d:22:a1:e0 24:8a:07:77:3d:00"
+            export external_port="00:26:55:de:84:15 00:26:55:d1:6b:e9 00:26:55:df:4d:15 00:26:55:d1:6e:b1"
+            export zuul_branch="master"
+            export prep_project="False"
+            export os_data_network="10.12.3.0/24"
+            export cherry_picks="https://review.openstack.org/openstack/neutron|refs/changes/41/417141/2|master"
+            export win_user="Administrator"
+            export win_password="Passw0rd"
+            export ovs_installer="http://10.20.1.14:8080/ovs/$UUID/OpenvSwitch.msi"
+            export ovs_certificate="http://10.20.1.14:8080/ovs/$UUID/package.cer"
+            export heat_image_url="http://10.20.1.14:8080/cirros-latest.vhdx"
+            export test_image_url="http://10.20.1.14:8080/cirros-latest.vhdx"
+            export scenario_img="cirros-latest.vhdx"
+            export vmswitch_management="False"
+            if [ ! -d $COMMON_CI_WIP ]; then
+                git clone "https://github.com/capsali/common-ci-wip.git"
+                git -C $COMMON_CI_WIP checkout no-zuul
+            else
+                git -C $COMMON_CI_WIP checkout no-zuul
+                git -C $COMMON_CI_WIP pull
+            fi
+            if [ ! -d $OVS_CI_WIP ]; then
+                git clone "https://github.com/capsali/ovs-ci-wip.git"
+            else
+                git -C $COMMON_CI_WIP pull
+            fi
+            chmod +x $ovs_dvsm_tempest
+            $ovs_dvsm_tempest
     wrappers:
       - timeout:
           timeout: 30

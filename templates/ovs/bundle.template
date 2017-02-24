@@ -37,7 +37,7 @@ services:
         vlan-range: 2500:2550
         nameservers: 10.20.1.37
         enable-vlans: False
-        scenario-img: cirros-0.3.3-x86_64.vhdx
+        scenario-img: ${scenario_img}
         #scenario-img: ubuntu_final.vhdx.zip
         pypi-mirror: http://10.20.1.8:8080/cloudbase/CI/+simple/
         data-port: ${data_port}

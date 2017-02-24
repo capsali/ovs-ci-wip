@@ -139,7 +139,7 @@ fi
 
 if [ "$DEBUG" != "YES" ]; then
     #destroy charms, services and used nodes.
-    $DEPLOYER_PATH/deployer.py  --clouds-and-credentials $DEPLOYER_PATH/ci-cl-creds.yaml --search-string $UUID
+    $DEPLOYER_PATH/deployer.py  --clouds-and-credentials $DEPLOYER_PATH/ci-cl-creds.yaml teardown --search-string $UUID --template $BUNDLE_LOCATION
 fi
 
 exit 0

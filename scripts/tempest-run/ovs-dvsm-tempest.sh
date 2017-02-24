@@ -60,8 +60,8 @@ if [[ $build_exit_code -eq 0 ]]; then
        --tests-dir /opt/stack/tempest --parallel-tests 10 --max-attempts 2"
 	tests_exit_code=$?
 	
-    exec_with_retry 5 2 ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i /home/ubuntu/.local/share/juju/ssh/juju_id_rsa ubuntu@$DEVSTACK \
-        "/home/ubuntu/devstack/unstack.sh"
+#    exec_with_retry 5 2 ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i /home/ubuntu/.local/share/juju/ssh/juju_id_rsa ubuntu@$DEVSTACK \
+#        "/home/ubuntu/devstack/unstack.sh"
 fi 
 
 

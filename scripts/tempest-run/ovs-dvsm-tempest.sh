@@ -106,9 +106,9 @@ for hv in $(echo $HYPERV | tr "," "\n"); do
     run_wsman_ps $hv 'get-service ^| Select-Object *' > $HV_LOGS/get-service.log 
 done
 
-find $LOG_DIR -name "*.log" -exec gzip {} \;
+wget http://10.20.1.3:8080/job/$JOB_NAME/$BUILD_ID/consoleText -O $LOG_DIR/console.log
 
-gzip -f -c $JENKINS_HOME/jobs/$JOB_NAME/builds/$BUILD_ID/log > $LOG_DIR/console.log.gz
+find $LOG_DIR -name "*.log" -exec gzip {} \;
 
 tar -zcf $LOG_DIR/aggregate.tar.gz $LOG_DIR
 

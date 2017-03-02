@@ -35,7 +35,7 @@ EOF
 
 cat $BUNDLE_LOCATION
 
-$DEPLOYER_PATH/deployer.py  --clouds-and-credentials $DEPLOYER_PATH/ci-cl-creds.yaml deploy --template $BUNDLE_LOCATION --max-unit-retries 5 --timeout 7200 --search-string $UUID
+$DEPLOYER_PATH/deployer.py  --clouds-and-credentials $DEPLOYER_PATH/ci-cl-creds.yaml deploy --template $BUNDLE_LOCATION --max-unit-retries 10 --timeout 7200 --search-string $UUID
 build_exit_code=$?
 
 source $WORKSPACE/nodes

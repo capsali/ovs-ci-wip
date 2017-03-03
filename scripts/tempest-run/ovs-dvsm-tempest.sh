@@ -66,7 +66,7 @@ fi
 
 
 ######################### Collect logs #########################
-LOG_DIR="logs/$commitID"
+LOG_DIR="logs/${commitid}"
 mkdir -p "$LOG_DIR"
 
 ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i /home/ubuntu/.local/share/juju/ssh/juju_id_rsa ubuntu@$DEVSTACK \

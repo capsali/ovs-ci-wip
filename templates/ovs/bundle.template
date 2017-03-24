@@ -38,15 +38,16 @@ services:
         nameservers: 10.20.1.37
         enable-vlans: False
         scenario-img: ${scenario_img}
+        cherry-picks: ${devstack_cherry_picks}
         #scenario-img: ubuntu_final.vhdx.zip
         pypi-mirror: http://10.20.1.8:8080/cloudbase/CI/+simple/
         data-port: ${data_port}
         external-port: ${external_port}
-        zuul-branch: ${zuul_branch}
-        zuul-change: "${zuul_change}"
-        zuul-project: ${zuul_project}
-        zuul-ref: ${zuul_ref}
-        zuul-url: ${zuul_url}
+        zuul-branch: ${ZUUL_BRANCH}
+        zuul-change: "${ZUUL_CHANGE}"
+        zuul-project: ${ZUUL_PROJECT}
+        zuul-ref: ${ZUUL_REF}
+        zuul-url: ${ZUUL_URL}
         prep-project: ${prep_project}
         pip-version: "pip==8.1.1"
     hyperv-${UUID}:
@@ -67,12 +68,12 @@ services:
         git-user-email: "mcapsali@gmail.com"
         git-user-name: "capsali"
         # cherry-picks: "neutron|https://review.openstack.org/openstack/neutron|refs/changes/77/227077/11|21818de8a9041d3e7e63922bb9fa1edc5475adee"
-        cherry-picks: "${cherry_picks}"
+        cherry-picks: "${hyperv_cherry_picks}"
         pypi-mirror: http://10.20.1.8:8080/cloudbase/CI/+simple/
         data-port: ${data_port}
-        zuul-branch: ${zuul_branch}
-        zuul-change: "${zuul_change}"
-        zuul-project: ${zuul_project}
-        zuul-ref: ${zuul_ref}
-        zuul-url: ${zuul_url}
+        zuul-branch: ${ZUUL_BRANCH}
+        zuul-change: "${ZUUL_CHANGE}"
+        zuul-project: ${ZUUL_PROJECT}
+        zuul-ref: ${ZUUL_REF}
+        zuul-url: ${ZUUL_URL}
         pip-version: "pip==8.1.1"

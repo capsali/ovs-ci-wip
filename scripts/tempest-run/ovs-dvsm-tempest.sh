@@ -38,7 +38,7 @@ EOF
 
 cat $BUNDLE_LOCATION
 
-$DEPLOYER_PATH/deployer.py  --clouds-and-credentials $DEPLOYER_PATH/ci-cl-creds.yaml deploy --template $BUNDLE_LOCATION --max-unit-retries 10 --timeout 7200 --search-string $UUID
+$DEPLOYER_PATH/deployer.py  --clouds-and-credentials $DEPLOYER_PATH/$CI_CREDS deploy --template $BUNDLE_LOCATION --max-unit-retries 10 --timeout 7200 --search-string $UUID
 build_exit_code=$?
 
 source $WORKSPACE/nodes
@@ -175,7 +175,7 @@ fi
 
 if [ "$DEBUG" != "YES" ]; then
     #destroy charms, services and used nodes.
-    $DEPLOYER_PATH/deployer.py  --clouds-and-credentials $DEPLOYER_PATH/ci-cl-creds.yaml teardown --search-string $UUID
+    $DEPLOYER_PATH/deployer.py  --clouds-and-credentials $DEPLOYER_PATH/$CI_CREDS teardown --search-string $UUID
 fi
 
 exit 0

@@ -137,13 +137,11 @@ fi
 
 # Copy logs to remote log server
 echo "Creating logs destination folder"
-if [ $project == "ovs" ]; then
-    ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i $LOGS_SSH_KEY logs@$LOGS_SERVER \
-        "if [ ! -d $REMOTE_LOG_PATH ]; then mkdir -p $REMOTE_LOG_PATH; else rm -r $REMOTE_LOG_PATH/*; fi"
-else
-    ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i $LOGS_SSH_KEY logs@$LOGS_SERVER \
-        "if [ ! -d $REMOTE_LOG_PATH ]; then mkdir -p $REMOTE_LOG_PATH; else rm -r $REMOTE_LOG_PATH/*; fi"
-fi
+ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i $LOGS_SSH_KEY logs@$LOGS_SERVER \
+    "rm -r $REMOTE_LOG_PATH"
+ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i $LOGS_SSH_KEY logs@$LOGS_SERVER \
+    "mkdir -p $REMOTE_LOG_PATH"
+        #"if [ ! -d $REMOTE_LOG_PATH ]; then mkdir -p $REMOTE_LOG_PATH; else rm -r $REMOTE_LOG_PATH/*; fi"
 
 echo "Uploading logs"
 scp -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no" -i $LOGS_SSH_KEY $LOG_DIR/aggregate.tar.gz logs@$LOGS_SERVER:$REMOTE_LOG_PATH/aggregate.tar.gz

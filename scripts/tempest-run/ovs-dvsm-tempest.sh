@@ -119,11 +119,19 @@ find $LOG_DIR -name "*.log" -exec gzip {} \;
 tar -zcf $LOG_DIR/aggregate.tar.gz $LOG_DIR
 
 if [ $project == "ovs" ]; then
+    if [ ! $UUID ]; then
+        exit 1
+    fi
     REMOTE_LOG_PATH="/srv/logs/ovs/tempest-run/$UUID"
-    
 elif [ $network_type == "ovs" ]; then
+    if [ ! $project ] || [ ! $ZUUL_CHANGE ] || [ ! $ZUUL_PATCHSET ]; then
+        exit 1
+    fi
     REMOTE_LOG_PATH="/srv/logs/${project}-ovs/$ZUUL_CHANGE/$ZUUL_PATCHSET"
 else
+    if [ ! $project ] || [ ! $ZUUL_CHANGE ] || [ ! $ZUUL_PATCHSET ]; then
+        exit 1
+    fi
     REMOTE_LOG_PATH="/srv/logs/$project/$ZUUL_CHANGE/$ZUUL_PATCHSET"
 fi
 
@@ -131,10 +139,10 @@ fi
 echo "Creating logs destination folder"
 if [ $project == "ovs" ]; then
     ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i $LOGS_SSH_KEY logs@$LOGS_SERVER \
-        "if [ -z '$UUID' ]; then echo 'Missing parameters!'; exit 1; elif [ ! -d $REMOTE_LOG_PATH ]; then mkdir -p $REMOTE_LOG_PATH; else rm -r $REMOTE_LOG_PATH/*; fi"
+        "if [ ! -d $REMOTE_LOG_PATH ]; then mkdir -p $REMOTE_LOG_PATH; else rm -r $REMOTE_LOG_PATH/*; fi"
 else
     ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i $LOGS_SSH_KEY logs@$LOGS_SERVER \
-        "if [ -z '$ZUUL_CHANGE' ] || [ -z '$ZUUL_PATCHSET' ]; then echo 'Missing parameters!'; exit 1; elif [ ! -d $REMOTE_LOG_PATH ]; then mkdir -p $REMOTE_LOG_PATH; else rm -r $REMOTE_LOG_PATH/*; fi"
+        "if [ ! -d $REMOTE_LOG_PATH ]; then mkdir -p $REMOTE_LOG_PATH; else rm -r $REMOTE_LOG_PATH/*; fi"
 fi
 
 echo "Uploading logs"

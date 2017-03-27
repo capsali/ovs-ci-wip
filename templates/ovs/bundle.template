@@ -60,7 +60,7 @@ services:
         vmswitch-management: ${vmswitch_management}
         ovs-installer-url: ${ovs_installer}
         ovs-certificate-url: ${ovs_certificate}
-        test-signing: true
+        test-signing: ${test_signing}
         network-type: ovs
         os-data-network: ${os_data_network}
         extra-python-packages: "setuptools SQLAlchemy==0.9.8 wmi oslo.i18n==1.7.0 pbr==1.2.0 oslo.messaging==4.5.1 lxml==3.6.4"

@@ -25,6 +25,9 @@ set -x
 set +e
 
 DEPLOYER_PATH="/home/ubuntu/deployer"
+JUJU_SSH_KEY="/home/ubuntu/.local/share/juju/ssh/juju_id_rsa"
+LOGS_SERVER="10.20.1.14"
+LOGS_SSH_KEY="/home/ubuntu/.ssh/norman.pem"
 BUNDLE_LOCATION=$(mktemp)
 
 
@@ -40,11 +43,11 @@ build_exit_code=$?
 
 source $WORKSPACE/nodes
     
-exec_with_retry 5 2 ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i /home/ubuntu/.local/share/juju/ssh/juju_id_rsa ubuntu@$DEVSTACK \
+exec_with_retry 5 2 ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i $JUJU_SSH_KEY ubuntu@$DEVSTACK \
     "git clone https://github.com/capsali/common-ci-wip.git /home/ubuntu/common-ci"
 clone_exit_code=$?
 
-exec_with_retry 5 2 ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i /home/ubuntu/.local/share/juju/ssh/juju_id_rsa ubuntu@$DEVSTACK \
+exec_with_retry 5 2 ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i $JUJU_SSH_KEY ubuntu@$DEVSTACK \
     "git -C /home/ubuntu/common-ci checkout no-zuul"
 checkout_exit_code=$?
 
@@ -52,9 +55,9 @@ checkout_exit_code=$?
 if [[ $build_exit_code -eq 0 ]]; then
 	#run tempest
 	
-    exec_with_retry 5 2 ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i /home/ubuntu/.local/share/juju/ssh/juju_id_rsa ubuntu@$DEVSTACK \
+    exec_with_retry 5 2 ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i $JUJU_SSH_KEY ubuntu@$DEVSTACK \
         "mkdir -p /home/ubuntu/tempest"
-	ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i /home/ubuntu/.local/share/juju/ssh/juju_id_rsa ubuntu@$DEVSTACK \
+	ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i $JUJU_SSH_KEY ubuntu@$DEVSTACK \
        "/home/ubuntu/common-ci/devstack/bin/run-all-tests.sh --include-file /home/ubuntu/common-ci/devstack/tests/$project/included_tests.txt \
        --exclude-file /home/ubuntu/common-ci/devstack/tests/$project/excluded_tests.txt --isolated-file /home/ubuntu/common-ci/devstack/tests/$project/isolated_tests.txt \
        --tests-dir /opt/stack/tempest --parallel-tests 10 --max-attempts 2"
@@ -66,13 +69,16 @@ fi
 
 
 ######################### Collect logs #########################
-LOG_DIR="logs/${commitid}"
+LOG_DIR="logs/${UUID}"
+if [ $LOG_DIR ]; then
+    rm -rf $LOG_DIR
+fi
 mkdir -p "$LOG_DIR"
 
-ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i /home/ubuntu/.local/share/juju/ssh/juju_id_rsa ubuntu@$DEVSTACK \
+ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i $JUJU_SSH_KEY ubuntu@$DEVSTACK \
     "sudo /home/ubuntu/common-ci/infra/logs/collect-logs.sh"
 
-scp -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i /home/ubuntu/.local/share/juju/ssh/juju_id_rsa \
+scp -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i $JUJU_SSH_KEY \
 ubuntu@$DEVSTACK:/home/ubuntu/aggregate.tar.gz $LOG_DIR/aggregate.tar.gz
 
 tar -zxf $LOG_DIR/aggregate.tar.gz -C $LOG_DIR/
@@ -112,9 +118,33 @@ find $LOG_DIR -name "*.log" -exec gzip {} \;
 
 tar -zcf $LOG_DIR/aggregate.tar.gz $LOG_DIR
 
-#swift -A http://10.255.244.20:8080/auth/v1.0 -U logs:root -K ubuntu upload $project $ZUUL_CHANGE
+if [ $project == "ovs" ]; then
+    REMOTE_LOG_PATH="/srv/logs/ovs/tempest-run/$UUID/"
+    
+elif [ $network_type == "ovs" ]; then
+    REMOTE_LOG_PATH="/srv/logs/$project-ovs/$ZUUL_CHANGE/$ZUUL_PATCHSET/"
+else
+    REMOTE_LOG_PATH="/srv/logs/$project/$ZUUL_CHANGE/$ZUUL_PATCHSET/"
+fi
 
-#rm -rf $ZUUL_CHANGE
+# Copy logs to remote log server
+echo "Creating logs destination folder"
+if [ $project == "ovs" ]; then
+    ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i $LOGS_SSH_KEY logs@$LOGS_SERVER \
+        "if [ -z '$UUID' ]; then echo 'Missing parameters!'; exit 1; elif [ ! -d $REMOTE_LOG_PATH ]; then mkdir -p $REMOTE_LOG_PATH; else rm -rf $REMOTE_LOG_PATH/*; fi"
+else
+    ssh -tt -o 'PasswordAuthentication=no' -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null' -i $LOGS_SSH_KEY logs@$LOGS_SERVER \
+        "if [ -z '$ZUUL_CHANGE' ] || [ -z '$ZUUL_PATCHSET' ]; then echo 'Missing parameters!'; exit 1; elif [ ! -d $REMOTE_LOG_PATH ]; then mkdir -p $REMOTE_LOG_PATH; else rm -rf $REMOTE_LOG_PATH/*; fi"
+fi
+
+echo "Uploading logs"
+scp -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no" -i $LOGS_SSH_KEY $LOG_DIR/aggregate.tar.gz logs@$LOGS_SERVER:$REMOTE_LOG_PATH/aggregate.tar.gz
+
+echo "Extracting logs"
+ssh -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no" -i $LOGS_SSH_KEY logs@$LOGS_SERVER "tar -xvf $REMOTE_LOG_PATH/aggregate.tar.gz -C $REMOTE_LOG_PATH/ --strip 1"
+
+# Remove local logs
+rm -rf $LOG_DIR
 ##############################################
 
 if [[ $build_exit_code -ne 0 ]]; then
@@ -139,7 +169,7 @@ fi
 
 if [ "$DEBUG" != "YES" ]; then
     #destroy charms, services and used nodes.
-    $DEPLOYER_PATH/deployer.py  --clouds-and-credentials $DEPLOYER_PATH/ci-cl-creds.yaml teardown --search-string $UUID --template $BUNDLE_LOCATION
+    $DEPLOYER_PATH/deployer.py  --clouds-and-credentials $DEPLOYER_PATH/ci-cl-creds.yaml teardown --search-string $UUID
 fi
 
 exit 0

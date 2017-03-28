@@ -116,7 +116,10 @@ wget http://10.20.1.3:8080/job/$JOB_NAME/$BUILD_ID/consoleText -O $LOG_DIR/conso
 
 find $LOG_DIR -name "*.log" -exec gzip {} \;
 
-tar -zcf $LOG_DIR/aggregate.tar.gz $LOG_DIR
+pushd $LOG_DIR
+tar -zcf aggregate.tar.gz .
+popd
+#tar -zcf $LOG_DIR/aggregate.tar.gz $LOG_DIR
 
 if [ $project == "ovs" ]; then
     if [ ! $UUID ]; then
@@ -147,7 +150,7 @@ echo "Uploading logs"
 scp -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no" -i $LOGS_SSH_KEY $LOG_DIR/aggregate.tar.gz logs@$LOGS_SERVER:$REMOTE_LOG_PATH/aggregate.tar.gz
 
 echo "Extracting logs"
-ssh -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no" -i $LOGS_SSH_KEY logs@$LOGS_SERVER "tar -xvf $REMOTE_LOG_PATH/aggregate.tar.gz -C $REMOTE_LOG_PATH/ --strip 1"
+ssh -o "UserKnownHostsFile /dev/null" -o "StrictHostKeyChecking no" -i $LOGS_SSH_KEY logs@$LOGS_SERVER "tar -xvf $REMOTE_LOG_PATH/aggregate.tar.gz -C $REMOTE_LOG_PATH/"
 
 # Remove local logs
 rm -rf $LOG_DIR
